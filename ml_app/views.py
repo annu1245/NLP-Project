@@ -2,13 +2,9 @@ import nltk
 from django.shortcuts import render
 import numpy as np
 import pandas as pd
-import nltk
 from nltk.tokenize import sent_tokenize
 import re
 import pytesseract
-import shutil
-import os
-import random
 import io
 from pathlib import Path
 try:
@@ -18,16 +14,15 @@ except ImportError:
 from sklearn.metrics.pairwise import cosine_similarity
 import networkx as nx
 from gtts import gTTS 
-from IPython.display import Audio
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from django.http import HttpResponse
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.core.files.storage import FileSystemStorage
 from nltk.corpus import stopwords
-stop_words = stopwords.words('english')
 
 # nltk.download('punkt')
 # nltk.download('stopwords')
+stop_words = stopwords.words('english')
 
 word_embeddings = {}
 file_path = staticfiles_storage.path('glove.6B.100d.txt')
@@ -106,20 +101,25 @@ def getSummary(request):
         for i in range(sn):
             summ.append("".join(ranked_sentences[i][1]))
 
-        s = ' '.join(map(str, summ))
+        summarized_text = ' '.join(map(str, summ))
 
         for i in range(sn):
-            tts = gTTS(s) 
-        tts.save('1.wav') 
-        sound_file = '1.wav'
-        Audio(sound_file, autoplay=True) 
+            tts = gTTS(summarized_text)
+        tts.save('media/speak.mp3')
 
         analyser = SentimentIntensityAnalyzer()
-        score = analyser.polarity_scores(s)
+        score = analyser.polarity_scores(summarized_text)
         print(score)
 
-        return HttpResponse("Score: " + str(score))
+        return render(request, 'type-summary.html', { 'audio': 'media/speak.mp3', 'summarized_text': summarized_text, 'score': score })
     else:
-        return HttpResponse('Error: user_file not found in uploaded files.')
+        return HttpResponse('Error')
 
     # return render(request, "index.html")
+
+
+def typeSummary(request):
+    summarized_text = 'Thus, persons in the new tax regime, with income up to ₹ 7 lakh will not have to pay any tax," Ms Sitharaman said while presenting Budget 2023 in parliament today.'
+    # summarized_text = 'Thus'
+    score = { 'neg': 0.3, 'neu': 0.959, 'pos': 0.241, 'compound': 0.0762 }
+    return render(request, 'type-summary.html', { 'audio': 'media/speak.mp3', 'summarized_text': summarized_text, 'score': score })

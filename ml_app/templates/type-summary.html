@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Typewriter Effect with Spell Out Speaker Sound</title>
+  <link rel="stylesheet" href="static/css/summary.css">
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+</head>
+<body>
+    <div id="piechart"></div>
+    <div id="typewriter-text">{{ summarized_text }}</div>
+    <audio autoplay class="hidden" id="speak-audio">
+        <source src="{{ audio }}" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <script type="text/javascript">
+
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawChart);
+        
+        function drawChart() {
+            var data = google.visualization.arrayToDataTable([
+                ['Task', ''],
+                ['Positive', parseFloat("{{score.pos}}")],
+                ['Negative', parseFloat("{{score.neg}}")],
+                ['Neutral', parseFloat("{{score.neu}}")]
+            ]);
+            
+            var options = {
+                'backgroundColor': 'transparent',
+                'title': 'Sentiments',
+                'width': 550,
+                'height': 300,
+                'colors': [ '#109618', '#DC3912', '#3366CC' ],
+                'legend': {
+                    labeledValueText: 'both',
+                    textStyle: { color: 'white' },
+                },
+                titleTextStyle: {
+                    color: 'white'
+                },
+                is3D: true,
+            };
+        
+            var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+            chart.draw(data, options);
+        }
+    </script>
+    <script>
+        const piechart = document.getElementById('piechart');
+        piechart.style.display = 'none';
+
+        const speak_audio = document.getElementById('speak-audio');
+        speak_audio.onended = function() {
+            piechart.style.display = 'flex';
+        };
+
+        var text = document.getElementById("typewriter-text").textContent;
+        document.getElementById("typewriter-text").textContent = "";
+
+        var i = 0;
+        function typeWriter() {
+            if (i < text.length) {
+                document.getElementById("typewriter-text").textContent += text.charAt(i);
+                i++;
+                setTimeout(typeWriter, 70);
+            }
+        }
+        typeWriter();
+    </script>
+</body>
+</html>
